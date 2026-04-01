@@ -1,0 +1,65 @@
+{
+    "lastId": 13,
+    "items": [
+        {
+            "id": 2,
+            "text": "Gaia Plas \u2013 Contract Sign",
+            "column": "todo"
+        },
+        {
+            "id": 3,
+            "text": "Dato\u2019 \u2013 Rental agreement OO4 International",
+            "column": "inprogress"
+        },
+        {
+            "id": 4,
+            "text": "Dato\u2019 \u2013 Check with Dato\u2019 regarding Minister of Entrepreneur and Cooperatives Development",
+            "column": "done"
+        },
+        {
+            "id": 5,
+            "text": "Gaia Plas \u2013 Payment follow-up (Omar)",
+            "column": "inprogress"
+        },
+        {
+            "id": 6,
+            "text": "Airisio Accounts \u2013 Bank statement and other checklist to follow up",
+            "column": "todo"
+        },
+        {
+            "id": 7,
+            "text": "Gutenberg \u2013 Run through target companies",
+            "column": "todo"
+        },
+        {
+            "id": 8,
+            "text": "Presentation \u2013 QR Code solution for universities (JK)",
+            "column": "inprogress"
+        },
+        {
+            "id": 9,
+            "text": "Retail \/ Merchandise Discussion",
+            "column": "todo"
+        },
+        {
+            "id": 10,
+            "text": "Next Action \u2013 Follow up with Istal",
+            "column": "todo"
+        },
+        {
+            "id": 11,
+            "text": "Agency-managed merchandising (Nestl\u00e9, etc.) at retail level Feedback: traceability issues in current process Example: 10K diapers via third-party merchandise Supervisor limitations and control gaps Trust issues in product traceability and merchandising Existing systems can be manipulated (>1% value leakage) Retailers delay payments; seller bears risk Manual delivery challans Proposal: automated system for merchandising Agency operates on labor fee model \u2192 trust gap",
+            "column": "todo"
+        },
+        {
+            "id": 12,
+            "text": "Follow up with Gelnova",
+            "column": "inprogress"
+        },
+        {
+            "id": 13,
+            "text": "Gelnova Meeting - Monday",
+            "column": "inprogress"
+        }
+    ]
+}
