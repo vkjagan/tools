@@ -115,7 +115,7 @@
         {
             "id": 19,
             "text": "Eve english",
-            "column": "done",
+            "column": "todo",
             "priority": "high",
             "dueDate": "2026-04-04",
             "assignee": "JK",
@@ -125,12 +125,12 @@
             ],
             "progress": 25,
             "reminderAt": "2026-04-04T13:45",
-            "reminderFired": true,
+            "reminderFired": false,
             "colorLabels": [
                 "#ef4444"
             ],
             "createdAt": "2026-04-04"
         }
     ],
-    "lastUpdated": 1775290500.012413
+    "lastUpdated": 1775290476.037812
 }

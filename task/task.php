@@ -55,64 +55,74 @@ if (isset($_SESSION['authenticated']) && isset($_GET['action'])) {
         $path = $BACKUP_DIR . '/' . $file;
         if (!file_exists($path)) { http_response_code(404); exit; }
         header('Content-Type: application/json');
-        echo file_get_contents($path);
+        readfile($path);
         exit;
     }
 }
 
-// ── Bulletproof save (with auto-backup) ─────────────────────────
-if (isset($_SESSION['authenticated']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $json = file_get_contents('php://input');
-    if (!empty($json)) {
-        $decoded = json_decode($json, true);
-        if ($decoded && isset($decoded['items'])) {
-            // 1. Write main file
-            file_put_contents($STORAGE_FILE, json_encode($decoded, JSON_PRETTY_PRINT));
+// ── Read Data ───────────────────────────────────────────────────
+$tasks_data = ['lastId' => 0, 'items' => [], 'lastUpdated' => 0];
+if (file_exists($STORAGE_FILE)) {
+    $tasks_data = json_decode(file_get_contents($STORAGE_FILE), true) ?: $tasks_data;
+} else {
+    file_put_contents($STORAGE_FILE, json_encode($tasks_data));
+}
 
-            // 2. Create timestamped backup
-            if (!is_dir($BACKUP_DIR)) {
-                mkdir($BACKUP_DIR, 0755, true);
-                // Protect directory from direct web access
-                file_put_contents($BACKUP_DIR . '/.htaccess', "Order Allow,Deny\nDeny from all\n");
+// ── Save AJAX (POST) ────────────────────────────────────────────
+if (isset($_SESSION['authenticated']) && $_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['password'])) {
+    $input = file_get_contents('php://input');
+    $data  = json_decode($input, true);
+    
+    if ($data !== null) {
+        $current_data = ['lastUpdated' => 0];
+        if (file_exists($STORAGE_FILE)) {
+            $current_data = json_decode(file_get_contents($STORAGE_FILE), true) ?: $current_data;
+        }
+
+        // Optimistic locking
+        if (isset($data['lastUpdated']) && isset($current_data['lastUpdated']) && 
+            $current_data['lastUpdated'] > $data['lastUpdated']) {
+            http_response_code(409);
+            echo json_encode(['message' => 'Board was updated by another user. Please reload.']);
+            exit;
+        }
+
+        $data['lastUpdated'] = microtime(true);
+
+        if (file_put_contents($STORAGE_FILE, json_encode($data, JSON_PRETTY_PRINT))) {
+            // Backup
+            if (!is_dir($BACKUP_DIR)) mkdir($BACKUP_DIR, 0777, true);
+            $bk_name = $BACKUP_DIR . '/tasks_' . date('Y-m-d_H-i-s') . '.json';
+            file_put_contents($bk_name, json_encode($data, JSON_PRETTY_PRINT));
+            $bks = glob($BACKUP_DIR . '/tasks_*.json');
+            if (count($bks) > $BACKUP_KEEP) {
+                usort($bks, fn($a, $b) => filemtime($a) - filemtime($b));
+                foreach (array_slice($bks, 0, count($bks) - $BACKUP_KEEP) as $f) unlink($f);
             }
-            $ts   = date('Y-m-d_H-i-s');
-            file_put_contents($BACKUP_DIR . '/tasks_' . $ts . '.json', json_encode($decoded, JSON_PRETTY_PRINT));
-
-            // 3. Prune old backups (keep newest $BACKUP_KEEP)
-            $all = glob($BACKUP_DIR . '/tasks_*.json');
-            sort($all); // oldest first
-            while (count($all) > $BACKUP_KEEP) { @unlink(array_shift($all)); }
-
             header('Content-Type: application/json');
-            echo json_encode(['status' => 'success']);
+            echo json_encode(['status' => 'ok', 'lastUpdated' => $data['lastUpdated']]);
+            exit;
+        } else {
+            http_response_code(500);
+            echo json_encode(['message' => 'Failed to write storage file']);
             exit;
         }
     }
 }
 
-// ── Reliable load & repair ──────────────────────────────────────
-$data = ["lastId" => 0, "items" => []];
-if (file_exists($STORAGE_FILE) && filesize($STORAGE_FILE) > 0) {
-    $content = file_get_contents($STORAGE_FILE);
-    $decoded_content = json_decode($content, true);
-    if (isset($decoded_content['items'])) {
-        $data = $decoded_content;
-    } elseif (is_array($decoded_content)) {
-        $data['items'] = $decoded_content;
-        $data['lastId'] = count($decoded_content);
-    }
-}
-$tasks_json       = json_encode($data);
-$columns_json     = json_encode($COLUMNS);
-$team_json        = json_encode($TEAM_MEMBERS);
-$tags_list_json   = json_encode($TAGS_LIST);
-$color_labels     = $cfg['color_labels'] ?? [];
-$color_labels_json = json_encode($color_labels);
+// ── Prepare JSON & Variables ────────────────────────────────────
+$tasks_json        = json_encode($tasks_data);
+$columns_json      = json_encode($COLUMNS);
+$team_json         = json_encode($TEAM_MEMBERS);
+$tags_list_json    = json_encode($TAGS_LIST);
+$COLOR_LABELS      = $cfg['color_labels'] ?? ['#ef4444','#f97316','#f59e0b','#84cc16','#22c55e','#14b8a6','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#f43f5e'];
+$color_labels_json = json_encode($COLOR_LABELS);
 
-// Build column options
 $col_options = '';
-foreach ($COLUMNS as $k => $v) {
-    $col_options .= '<option value="' . htmlspecialchars($k) . '">' . htmlspecialchars($v['label']) . '</option>';
+foreach ($COLUMNS as $k => $c) {
+    if ($k !== 'archive') {
+        $col_options .= '<option value="' . htmlspecialchars($k) . '">' . htmlspecialchars($c['label'] ?? '') . '</option>';
+    }
 }
 
 // Build assignee options
@@ -235,6 +245,16 @@ foreach ($TEAM_MEMBERS as $m) {
         .cbtn.move { color: #8b5cf6; } .cbtn.move:hover { background: rgba(139,92,246,0.1); }
         .cbtn.wa   { color: #25D366; } .cbtn.wa:hover   { background: rgba(37,211,102,0.1); }
         .cbtn.del  { color: #ef4444; } .cbtn.del:hover  { background: rgba(239,68,68,0.1); }
+        .cbtn.self { color: var(--accent); } .cbtn.self:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+        /* ── FILTER BUTTON ── */
+        .filter-pill {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 20px; padding: 4px 12px; color: white; display: flex; align-items: center; gap: 8px;
+            font-size: 0.78rem; cursor: pointer; transition: 0.2s;
+        }
+        .filter-pill:hover { background: rgba(255,255,255,0.18); }
+        .filter-pill.active { background: white; color: var(--hdr-from); font-weight: 700; border-color: white; }
 
         /* ── ASSIGNEE ── */
         .assignee-avatar { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.57rem; font-weight: 800; color: white; flex-shrink: 0; }
@@ -392,6 +412,13 @@ foreach ($TEAM_MEMBERS as $m) {
             <i class="fas fa-magnifying-glass"></i>
             <input type="text" id="searchInput" class="search-bar" placeholder="Search tasks…">
         </div>
+        <div class="d-none d-lg-flex align-items-center gap-2 border-start border-white border-opacity-10 ps-3">
+            <span style="font-size:0.7rem; text-transform:uppercase; opacity:0.5; font-weight:700;">Filter:</span>
+            <div id="userFilters" class="d-flex gap-2">
+                <div class="filter-pill active" onclick="filterByUser(null, this)">All</div>
+                <!-- Dynamic user pills will go here -->
+            </div>
+        </div>
         <div class="d-flex gap-2 flex-wrap align-items-center">
             <button class="hbtn primary" onclick="openAddModal()"><i class="fas fa-plus"></i><span class="hide-sm"> Add Task</span></button>
             <button class="hbtn" onclick="new bootstrap.Modal(document.getElementById('bulkModal')).show()"><i class="fas fa-list-ol"></i><span class="hide-sm"> Bulk</span></button>
@@ -401,6 +428,7 @@ foreach ($TEAM_MEMBERS as $m) {
                 <input type="file" id="importFile" hidden onchange="importJson(event)">
             </label>
             <button class="hbtn" onclick="exportData()" title="Export JSON"><i class="fas fa-file-export"></i></button>
+            <a href="admin.php" class="hbtn" title="Super Admin Config"><i class="fas fa-cog"></i></a>
             <a href="?logout=1" class="hbtn danger" title="Logout"><i class="fas fa-power-off"></i></a>
         </div>
     </div>
@@ -720,8 +748,29 @@ foreach ($TEAM_MEMBERS as $m) {
     }
     let draggedTask = null;
     let searchQuery = '';
+    let userFilter  = null;
     let activeDrop  = null;
     let taskModal   = null;
+
+    /* ── FILTERING ── */
+    function filterByUser(user, el) {
+        userFilter = user;
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        render();
+    }
+
+    function buildUserFilters() {
+        const wrap = document.getElementById('userFilters');
+        if (!wrap) return;
+        TEAM.forEach(name => {
+            const p = document.createElement('div');
+            p.className = 'filter-pill';
+            p.textContent = name;
+            p.onclick = () => filterByUser(name, p);
+            wrap.appendChild(p);
+        });
+    }
 
     /* ── TOAST ── */
     function toast(msg, type = 'success', ms = 2400) {
@@ -765,7 +814,9 @@ foreach ($TEAM_MEMBERS as $m) {
 
         Object.entries(COLS).forEach(([key, meta]) => {
             const items = boardData.items.filter(t =>
-                t.column === key && (q === '' || t.text.toLowerCase().includes(q))
+                t.column === key && 
+                (q === '' || t.text.toLowerCase().includes(q)) &&
+                (userFilter === null || t.assignee === userFilter)
             );
 
             const col = document.createElement('div');
@@ -903,6 +954,7 @@ foreach ($TEAM_MEMBERS as $m) {
                 <div class="card-actions">
                     ${waBtn}
                     <button class="cbtn edit" onclick="openEdit(${t.id})" title="Edit"><i class="fas fa-pen"></i></button>
+                    ${!t.assignee ? `<button class="cbtn self" onclick="selfAssign(${t.id})" title="Assign to me"><i class="fas fa-user-plus"></i></button>` : ''}
                     <div class="move-wrap">
                         <button class="cbtn move" onclick="toggleDrop(event,${t.id})" title="Move to…"><i class="fas fa-arrows-left-right"></i></button>
                         <div class="move-drop" id="drop-${t.id}">${moveOpts}</div>
@@ -940,6 +992,19 @@ foreach ($TEAM_MEMBERS as $m) {
         }
     }
 
+    function selfAssign(id) {
+        if (TEAM.length === 1) {
+            moveAssign(id, TEAM[0]);
+        } else {
+            openEdit(id); 
+        }
+    }
+
+    function moveAssign(id, name) {
+        const t = boardData.items.find(i => i.id === id);
+        if (t) { t.assignee = name; render(); save(); toast(`Assigned to ${name}`, 'info'); }
+    }
+
     /* ── WHATSAPP SHARE ── */
     function shareWA(id) {
         const t = boardData.items.find(i => i.id === id);
@@ -970,8 +1035,19 @@ foreach ($TEAM_MEMBERS as $m) {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(boardData)
             });
+            if (r.status === 409) {
+                const err = await r.json();
+                alert("⚠️ CONFLICT: " + err.message);
+                window.location.reload();
+                return;
+            }
             if (!r.ok) throw new Error();
-        } catch { toast('Save failed!', 'error'); }
+            const res = await r.json();
+            if (res.lastUpdated) boardData.lastUpdated = res.lastUpdated;
+        } catch (e) { 
+            console.error(e);
+            toast('Save failed!', 'error'); 
+        }
     }
 
     /* ── MODAL ── */
@@ -1166,6 +1242,7 @@ foreach ($TEAM_MEMBERS as $m) {
 
     requestNotifyPermission();
     scheduleReminders();
+    buildUserFilters();
     render();
 </script>
 <?php endif; ?>

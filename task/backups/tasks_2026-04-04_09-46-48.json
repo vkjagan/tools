@@ -1,5 +1,5 @@
 {
-    "lastId": 19,
+    "lastId": 18,
     "items": [
         {
             "id": 2,
@@ -111,26 +111,7 @@
             "notes": "",
             "tags": [],
             "progress": 45
-        },
-        {
-            "id": 19,
-            "text": "Eve english",
-            "column": "done",
-            "priority": "high",
-            "dueDate": "2026-04-04",
-            "assignee": "JK",
-            "notes": "",
-            "tags": [
-                "Finance"
-            ],
-            "progress": 25,
-            "reminderAt": "2026-04-04T13:45",
-            "reminderFired": true,
-            "colorLabels": [
-                "#ef4444"
-            ],
-            "createdAt": "2026-04-04"
         }
     ],
-    "lastUpdated": 1775290500.012413
+    "lastUpdated": 1775288808.699905
 }
