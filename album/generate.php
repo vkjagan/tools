@@ -21,12 +21,9 @@ $script_dir = dirname($_SERVER['SCRIPT_NAME']);
 $script_dir = str_replace('\\', '/', $script_dir);
 if ($script_dir === '/') $script_dir = '';
 
-$base_output_url = $base_url . 'output/';
-$base_source_url = $base_url . 'source/';
-
 function generate_grid_pages($output_path, $items, $type, $page_title, $breadcrumbs, $items_per_page = 24) {
-    global $base_output_url, $base_source_url, $base_url;
-    
+    global $ads_config, $generator_version;
+
     $total_items = count($items);
     $total_pages = max(1, ceil($total_items / $items_per_page));
     
@@ -56,8 +53,132 @@ function sse_log($msg, $type = 'log', $percent = null) {
     @flush();
 }
 
+function encode_path_segments(...$segments) {
+    return implode('/', array_map(function ($segment) {
+        // Prevent double-encoding if names already contain URL-encoded values (e.g. "%20").
+        return rawurlencode(rawurldecode($segment));
+    }, $segments));
+}
+
+function copy_album_images($source_album_dir, $output_album_dir, $images) {
+    $copied_count = 0;
+
+    foreach ($images as $img) {
+        $source_file = "$source_album_dir/$img";
+        $dest_file = "$output_album_dir/$img";
+
+        if (!file_exists($source_file)) {
+            sse_log("WARNING: Missing image file skipped: $source_file");
+            continue;
+        }
+
+        if (!is_readable($source_file)) {
+            sse_log("WARNING: Unreadable image file skipped: $source_file");
+            continue;
+        }
+
+        // Skip copy when destination is already up-to-date.
+        if (file_exists($dest_file) && filesize($source_file) === filesize($dest_file) && filemtime($source_file) <= filemtime($dest_file)) {
+            $copied_count++;
+            continue;
+        }
+
+        if (!@copy($source_file, $dest_file)) {
+            sse_log("WARNING: Failed to copy image file: $source_file", 'log');
+            continue;
+        }
+
+        $copied_count++;
+    }
+
+    return $copied_count;
+}
+
+function load_ads_config($ads_config_file) {
+    $defaults = [
+        'enabled' => false,
+        'adsense_client' => '',
+        'slots' => [
+            'grid_top_desktop' => '',
+            'grid_top_mobile' => '',
+            'grid_bottom_desktop' => '',
+            'grid_bottom_mobile' => '',
+            'album_top_desktop' => '',
+            'album_top_mobile' => '',
+            'album_mid_desktop' => '',
+            'album_mid_mobile' => '',
+            'album_footer_desktop' => '',
+            'album_footer_mobile' => '',
+        ],
+    ];
+
+    if (!file_exists($ads_config_file)) {
+        return $defaults;
+    }
+
+    $loaded = include $ads_config_file;
+    if (!is_array($loaded)) {
+        return $defaults;
+    }
+
+    return array_replace_recursive($defaults, $loaded);
+}
+
+function render_ad_slot($slot_id, $extra_classes = '') {
+    global $ads_config;
+
+    if (empty($ads_config['enabled']) || empty($ads_config['adsense_client']) || empty($slot_id)) {
+        return '';
+    }
+
+    $safe_classes = trim('ad-slot ' . $extra_classes);
+    $client = htmlspecialchars($ads_config['adsense_client']);
+    $slot = htmlspecialchars($slot_id);
+
+    return <<<HTML
+<div class="$safe_classes" aria-label="Advertisement">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="$client"
+       data-ad-slot="$slot"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+</div>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+HTML;
+}
+
+function render_named_ad_slot($slot_key, $extra_classes = '') {
+    global $ads_config;
+
+    if (empty($ads_config['enabled'])) {
+        return "<!-- ad-slot:$slot_key skipped: ads_disabled -->";
+    }
+
+    if (empty($ads_config['adsense_client'])) {
+        return "<!-- ad-slot:$slot_key skipped: missing_adsense_client -->";
+    }
+
+    $slot_id = $ads_config['slots'][$slot_key] ?? '';
+    if (empty($slot_id)) {
+        return "<!-- ad-slot:$slot_key skipped: missing_slot_id -->";
+    }
+
+    return render_ad_slot($slot_id, $extra_classes);
+}
+
 $source_dir = __DIR__ . '/source';
 $output_dir = __DIR__ . '/output';
+$generator_version = 'album-generator-v2026.04.09-ads-v3';
+$ads_config = load_ads_config(__DIR__ . '/ads.php');
+
+if (empty($ads_config['enabled'])) {
+    sse_log("Ads are disabled in album/ads.php (enabled=false). Generated files will not contain ad markup.");
+} elseif (empty($ads_config['adsense_client'])) {
+    sse_log("Ads enabled but adsense_client is empty in album/ads.php. Generated files will not contain ad markup.");
+} else {
+    sse_log("Ads are enabled. Rendering configured ad slots into generated files.");
+}
 
 // Safety wrapper for mkdir
 function safe_mkdir($path) {
@@ -127,13 +248,13 @@ foreach ($hierarchy as $cat => $albums) {
         if (!empty($images)) {
             // Validate image existence
             if (file_exists("$source_dir/$cat/$alb/{$images[0]}")) {
-                $cat_img = rawurlencode($cat) . "/" . rawurlencode($alb) . "/" . rawurlencode($images[0]);
+                $cat_img = encode_path_segments($cat, $alb, $images[0]);
                 break;
             }
         }
     }
     $home_items[] = [
-        'url' => rawurlencode($cat) . "/index.html",
+        'url' => encode_path_segments($cat) . "/index.html",
         'img' => $cat_img,
         'title' => $cat,
         'subtitle' => "$album_count Albums"
@@ -160,10 +281,10 @@ foreach ($hierarchy as $cat => $albums) {
         $img_count = count($images);
         $alb_img = '';
         if ($img_count > 0 && file_exists("$source_dir/$cat/$alb/{$images[0]}")) {
-            $alb_img = rawurlencode($alb) . "/" . rawurlencode($images[0]);
+            $alb_img = encode_path_segments($alb, $images[0]);
         }
         $cat_items[] = [
-            'url' => rawurlencode($alb) . "/index.html",
+            'url' => encode_path_segments($alb) . "/index.html",
             'img' => $alb_img,
             'title' => $alb,
             'subtitle' => "$img_count Photos"
@@ -181,28 +302,25 @@ foreach ($hierarchy as $cat => $albums) {
     
     // 3. Generate Album Pages & Photos
     foreach ($albums as $alb => $images) {
-        safe_mkdir("$output_dir/$cat/$alb");
+        $album_output_dir = "$output_dir/$cat/$alb";
+        $album_source_dir = "$source_dir/$cat/$alb";
+        safe_mkdir($album_output_dir);
 
-        // Copy images to output folder
-        foreach ($images as $img) {
-            $source_file = "$source_dir/$cat/$alb/$img";
-            $dest_file = "$output_dir/$cat/$alb/$img";
-            if (file_exists($source_file)) {
-                copy($source_file, $dest_file);
-            }
-        }
+        // Copy images to output folder so album pages remain fully self-contained.
+        $copied_images = copy_album_images($album_source_dir, $album_output_dir, $images);
 
         $category_name = $cat;
         $album_name = $alb;
         $total_images = count($images);
+        sse_log("-> Album '$alb': Prepared $copied_images/$total_images image files in output folder", 'log');
 
         // Output fallback or pages
         if ($total_images === 0) {
             $current_idx = 0;
             ob_start(); include __DIR__ . '/template.php';
             $html = ob_get_clean();
-            file_put_contents("$output_dir/$cat/$alb/page1.html", $html);
-            file_put_contents("$output_dir/$cat/$alb/index.html", $html);
+            file_put_contents("$album_output_dir/page1.html", $html);
+            file_put_contents("$album_output_dir/index.html", $html);
             sse_log("-> Album '$alb' (Empty): Generated index.html, page1.html", "log");
         } else {
             $generated_album_files = [];
@@ -212,12 +330,12 @@ foreach ($hierarchy as $cat => $albums) {
                 include __DIR__ . '/template.php';
                 $html = ob_get_clean();
                 $page_file = "page" . ($i + 1) . ".html";
-                file_put_contents("$output_dir/$cat/$alb/$page_file", $html);
+                file_put_contents("$album_output_dir/$page_file", $html);
                 $generated_album_files[] = $page_file;
 
                 // Set index.html as duplication of page1.html
                 if ($i === 0) {
-                    file_put_contents("$output_dir/$cat/$alb/index.html", $html);
+                    file_put_contents("$album_output_dir/index.html", $html);
                     $generated_album_files[] = "index.html";
                 }
             }
