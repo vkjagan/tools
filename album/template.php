@@ -22,13 +22,17 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
+    <!-- generated-by: <?= htmlspecialchars($generator_version ?? 'unknown-generator-version') ?> -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title><?= $seo_title ?></title>
     <meta name="description" content="<?= $seo_desc ?>">
     <meta property="og:title" content="<?= $seo_title ?>">
     <meta property="og:description" content="<?= $seo_desc ?>">
-    <meta property="og:image" content="<?= htmlspecialchars(rawurlencode($current_image)) ?>">
+    <meta property="og:image" content="<?= htmlspecialchars(rawurlencode(rawurldecode($current_image))) ?>">
+    <?php if (!empty($ads_config['enabled']) && !empty($ads_config['adsense_client'])): ?>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= htmlspecialchars($ads_config['adsense_client']) ?>" crossorigin="anonymous"></script>
+    <?php endif; ?>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -61,7 +65,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
             width: 100%; height: 100vh;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             position: relative; scroll-snap-align: start;
-            padding: 60px 20px 80px;
+            padding: 150px 20px 190px;
         }
         
         .photo-img {
@@ -96,6 +100,43 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         }
         
         html { scroll-snap-type: y mandatory; }
+        .ad-wrap { width: min(100%, 980px); margin: 0 auto; padding: 6px 20px; }
+        .ad-slot { min-height: 50px; margin: 10px 0; text-align: center; overflow: hidden; }
+        .ad-top-fixed {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.75), rgba(0,0,0,0.25));
+        }
+        .ad-bottom-fixed {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.25));
+        }
+        .desktop-only { display: none; }
+        .mobile-only { display: block; }
+        @media (min-width: 992px) {
+            .desktop-only { display: block; }
+            .mobile-only { display: none; }
+        }
+        .generator-version {
+            position: fixed;
+            right: 10px;
+            bottom: 124px;
+            z-index: 1100;
+            font-size: 11px;
+            color: #bbb;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            padding: 4px 10px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -106,6 +147,11 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
 
     <!-- Pre-load current page target in a JS variable to anchor scroll immediately -->
     <script>const START_PAGE = <?= $current_page ?>;</script>
+
+    <div class="ad-wrap ad-top-fixed">
+        <div class="desktop-only"><?= render_named_ad_slot('album_top_desktop') ?></div>
+        <div class="mobile-only"><?= render_named_ad_slot('album_top_mobile') ?></div>
+    </div>
 
     <div class="album-container" id="albumContainer">
         <?php if ($total_images === 0): ?>
@@ -120,15 +166,28 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
             <?php foreach ($images as $idx => $img_name): 
                 $pgNum = $idx + 1;
                 $isCurrent = ($pgNum === $current_page);
-                $img_path = rawurlencode($img_name);
+                // Normalize to a single URL-encoding pass to avoid `%` becoming `%25`.
+                $img_path = rawurlencode(rawurldecode($img_name));
                 $page_url = "page" . $pgNum . ".html";
             ?>
             <section class="photo-section" id="photo-<?= $pgNum ?>" data-page="<?= $pgNum ?>" data-url="<?= $page_url ?>">
-                <img src="<?= htmlspecialchars($img_path) ?>" class="photo-img" loading="<?= $isCurrent ? 'eager' : 'lazy' ?>" alt="Photo <?= $pgNum ?>">
+                <img
+                    src="<?= htmlspecialchars($img_path) ?>"
+                    class="photo-img"
+                    loading="<?= $isCurrent ? 'eager' : 'lazy' ?>"
+                    decoding="async"
+                    fetchpriority="<?= $isCurrent ? 'high' : 'low' ?>"
+                    alt="<?= htmlspecialchars($album_name) ?> - Photo <?= $pgNum ?>">
                 <div class="photo-info">
                     <?= htmlspecialchars($img_name) ?>
                 </div>
             </section>
+            <?php if (!empty($ads_config['placements']['album_mid_enabled']) && $pgNum === 2): ?>
+            <div class="ad-wrap">
+                <div class="desktop-only"><?= render_named_ad_slot('album_mid_desktop') ?></div>
+                <div class="mobile-only"><?= render_named_ad_slot('album_mid_mobile') ?></div>
+            </div>
+            <?php endif; ?>
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
@@ -137,6 +196,15 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         <a id="btnPrev" class="nav-btn"><i class="bi bi-arrow-left-circle-fill"></i>Prev</a>
         <a href="../index.html" class="nav-btn"><i class="bi bi-grid-fill"></i>Albums</a>
         <a id="btnNext" class="nav-btn"><i class="bi bi-arrow-right-circle-fill"></i>Next</a>
+    </div>
+
+    <div class="ad-wrap ad-bottom-fixed">
+        <div class="desktop-only"><?= render_named_ad_slot('album_footer_desktop') ?></div>
+        <div class="mobile-only"><?= render_named_ad_slot('album_footer_mobile') ?></div>
+    </div>
+
+    <div class="generator-version" title="Generator Build Version">
+        <?= htmlspecialchars($generator_version ?? 'unknown-generator-version') ?>
     </div>
 
     <script>

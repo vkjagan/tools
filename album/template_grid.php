@@ -9,9 +9,13 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
+    <!-- generated-by: <?= htmlspecialchars($generator_version ?? 'unknown-generator-version') ?> -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($page_title) ?></title>
+    <?php if (!empty($ads_config['enabled']) && !empty($ads_config['adsense_client'])): ?>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= htmlspecialchars($ads_config['adsense_client']) ?>" crossorigin="anonymous"></script>
+    <?php endif; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
@@ -54,6 +58,26 @@
             width: 100%; height: 100%; object-fit: cover;
         }
         .card-img-top-wrapper i { font-size: 4rem; color: #444; }
+        .ad-slot { min-height: 50px; margin: 18px 0; text-align: center; overflow: hidden; }
+        .desktop-only { display: none; }
+        .mobile-only { display: block; }
+        @media (min-width: 992px) {
+            .desktop-only { display: block; }
+            .mobile-only { display: none; }
+        }
+        .generator-version {
+            position: fixed;
+            right: 10px;
+            bottom: 10px;
+            z-index: 1100;
+            font-size: 11px;
+            color: #bbb;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            padding: 4px 10px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -80,6 +104,8 @@
 
     <div class="container py-5">
         <h2 class="mb-4 fw-bold"><?= htmlspecialchars($page_title) ?></h2>
+        <div class="desktop-only"><?= render_named_ad_slot('grid_top_desktop') ?></div>
+        <div class="mobile-only"><?= render_named_ad_slot('grid_top_mobile') ?></div>
         
         <?php if (empty($page_items)): ?>
             <div class="text-center py-5">
@@ -94,7 +120,7 @@
                             <div class="card">
                                 <div class="card-img-top-wrapper">
                                     <?php if (!empty($item['img'])): ?>
-                                        <img src="<?= htmlspecialchars($item['img']) ?>" alt="<?= htmlspecialchars($item['title']) ?>" loading="lazy">
+                                        <img src="<?= htmlspecialchars($item['img']) ?>" alt="<?= htmlspecialchars($item['title']) ?>" loading="lazy" decoding="async">
                                     <?php else: ?>
                                         <i class="bi bi-image"></i>
                                     <?php endif; ?>
@@ -152,6 +178,13 @@
                 </nav>
             <?php endif; ?>
         <?php endif; ?>
+
+        <div class="desktop-only"><?= render_named_ad_slot('grid_bottom_desktop') ?></div>
+        <div class="mobile-only"><?= render_named_ad_slot('grid_bottom_mobile') ?></div>
+    </div>
+
+    <div class="generator-version" title="Generator Build Version">
+        <?= htmlspecialchars($generator_version ?? 'unknown-generator-version') ?>
     </div>
 
 </body>
