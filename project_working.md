@@ -25,3 +25,4 @@ This document tracks all the changes, updates, and current working status of the
 - Added explicit ad-slot HTML comments and generator signature comments in album templates to make ad rendering/debugging visible in page source even when ads are disabled or slot IDs are missing.
 - Added visible generator version badge + HTML comment signature in generated album/grid pages so deployment freshness can be verified directly in browser and view-source.
 - Updated `album/ads.php` with live AdSense client `ca-pub-9611661876400656` and mapped all desktop/mobile slot IDs (D1-D5, M1-M4) into grid/album placement keys.
+- Adjusted album ad layout defaults to top+bottom only (`album_mid_enabled=false`), switched mobile footer slot to a rectangular unit, and added slot-level render options (style/format/full-width) to prevent thin broken horizontal bars.

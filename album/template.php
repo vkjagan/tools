@@ -101,7 +101,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         
         html { scroll-snap-type: y mandatory; }
         .ad-wrap { width: min(100%, 980px); margin: 0 auto; padding: 10px 20px; }
-        .ad-slot { min-height: 50px; margin: 10px 0; }
+        .ad-slot { min-height: 50px; margin: 10px 0; text-align: center; overflow: hidden; }
         .desktop-only { display: none; }
         .mobile-only { display: block; }
         @media (min-width: 992px) {
@@ -166,7 +166,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
                     <?= htmlspecialchars($img_name) ?>
                 </div>
             </section>
-            <?php if ($pgNum === 2): ?>
+            <?php if (!empty($ads_config['placements']['album_mid_enabled']) && $pgNum === 2): ?>
             <div class="ad-wrap">
                 <div class="desktop-only"><?= render_named_ad_slot('album_mid_desktop') ?></div>
                 <div class="mobile-only"><?= render_named_ad_slot('album_mid_mobile') ?></div>

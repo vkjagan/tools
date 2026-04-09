@@ -6,6 +6,10 @@
 return [
     'enabled' => true,
     'adsense_client' => 'ca-pub-9611661876400656',
+    'placements' => [
+        // Keep album pages clean: show only top + bottom by default.
+        'album_mid_enabled' => false,
+    ],
     'slots' => [
         // Grid pages (category/home indexes)
         // Desktop: D1 (728x90 leaderboard), D4 (auto responsive)
@@ -23,6 +27,11 @@ return [
         'album_mid_desktop' => '5493482988',    // DP_SLOT_ID_D3
         'album_mid_mobile' => '8364661087',     // DP_SLOT_ID_M3
         'album_footer_desktop' => '5301911296', // DP_SLOT_ID_D5
-        'album_footer_mobile' => '4425416070',  // DP_SLOT_ID_M4
+        'album_footer_mobile' => [              // DP_SLOT_ID_M3 (force rectangular unit)
+            'id' => '8364661087',
+            'style' => 'display:inline-block;width:300px;height:250px',
+            'format' => null,
+            'full_width_responsive' => false,
+        ],
     ],
 ];

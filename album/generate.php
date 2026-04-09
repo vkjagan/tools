@@ -124,7 +124,7 @@ function load_ads_config($ads_config_file) {
     return array_replace_recursive($defaults, $loaded);
 }
 
-function render_ad_slot($slot_id, $extra_classes = '') {
+function render_ad_slot($slot_id, $extra_classes = '', $options = []) {
     global $ads_config;
 
     if (empty($ads_config['enabled']) || empty($ads_config['adsense_client']) || empty($slot_id)) {
@@ -134,15 +134,20 @@ function render_ad_slot($slot_id, $extra_classes = '') {
     $safe_classes = trim('ad-slot ' . $extra_classes);
     $client = htmlspecialchars($ads_config['adsense_client']);
     $slot = htmlspecialchars($slot_id);
+    $style = htmlspecialchars($options['style'] ?? 'display:block');
+    $format = $options['format'] ?? 'auto';
+    $full_width = array_key_exists('full_width_responsive', $options) ? (bool) $options['full_width_responsive'] : true;
+    $format_attr = $format !== null ? ' data-ad-format="' . htmlspecialchars($format) . '"' : '';
+    $full_width_attr = $full_width ? ' data-full-width-responsive="true"' : '';
 
     return <<<HTML
 <div class="$safe_classes" aria-label="Advertisement">
   <ins class="adsbygoogle"
-       style="display:block"
+       style="$style"
        data-ad-client="$client"
        data-ad-slot="$slot"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
+       $format_attr
+       $full_width_attr></ins>
 </div>
 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 HTML;
@@ -159,12 +164,14 @@ function render_named_ad_slot($slot_key, $extra_classes = '') {
         return "<!-- ad-slot:$slot_key skipped: missing_adsense_client -->";
     }
 
-    $slot_id = $ads_config['slots'][$slot_key] ?? '';
+    $slot_config = $ads_config['slots'][$slot_key] ?? '';
+    $slot_id = is_array($slot_config) ? ($slot_config['id'] ?? '') : $slot_config;
     if (empty($slot_id)) {
         return "<!-- ad-slot:$slot_key skipped: missing_slot_id -->";
     }
 
-    return render_ad_slot($slot_id, $extra_classes);
+    $slot_options = is_array($slot_config) ? $slot_config : [];
+    return render_ad_slot($slot_id, $extra_classes, $slot_options);
 }
 
 $source_dir = __DIR__ . '/source';

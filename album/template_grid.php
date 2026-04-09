@@ -58,7 +58,7 @@
             width: 100%; height: 100%; object-fit: cover;
         }
         .card-img-top-wrapper i { font-size: 4rem; color: #444; }
-        .ad-slot { min-height: 50px; margin: 18px 0; }
+        .ad-slot { min-height: 50px; margin: 18px 0; text-align: center; overflow: hidden; }
         .desktop-only { display: none; }
         .mobile-only { display: block; }
         @media (min-width: 992px) {
