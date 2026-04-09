@@ -65,7 +65,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
             width: 100%; height: 100vh;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             position: relative; scroll-snap-align: start;
-            padding: 60px 20px 80px;
+            padding: 150px 20px 190px;
         }
         
         .photo-img {
@@ -100,8 +100,24 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         }
         
         html { scroll-snap-type: y mandatory; }
-        .ad-wrap { width: min(100%, 980px); margin: 0 auto; padding: 10px 20px; }
+        .ad-wrap { width: min(100%, 980px); margin: 0 auto; padding: 6px 20px; }
         .ad-slot { min-height: 50px; margin: 10px 0; text-align: center; overflow: hidden; }
+        .ad-top-fixed {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.75), rgba(0,0,0,0.25));
+        }
+        .ad-bottom-fixed {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.25));
+        }
         .desktop-only { display: none; }
         .mobile-only { display: block; }
         @media (min-width: 992px) {
@@ -111,7 +127,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         .generator-version {
             position: fixed;
             right: 10px;
-            bottom: 70px;
+            bottom: 124px;
             z-index: 1100;
             font-size: 11px;
             color: #bbb;
@@ -132,7 +148,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
     <!-- Pre-load current page target in a JS variable to anchor scroll immediately -->
     <script>const START_PAGE = <?= $current_page ?>;</script>
 
-    <div class="ad-wrap">
+    <div class="ad-wrap ad-top-fixed">
         <div class="desktop-only"><?= render_named_ad_slot('album_top_desktop') ?></div>
         <div class="mobile-only"><?= render_named_ad_slot('album_top_mobile') ?></div>
     </div>
@@ -182,7 +198,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         <a id="btnNext" class="nav-btn"><i class="bi bi-arrow-right-circle-fill"></i>Next</a>
     </div>
 
-    <div class="ad-wrap" style="padding-bottom: 80px;">
+    <div class="ad-wrap ad-bottom-fixed">
         <div class="desktop-only"><?= render_named_ad_slot('album_footer_desktop') ?></div>
         <div class="mobile-only"><?= render_named_ad_slot('album_footer_mobile') ?></div>
     </div>
