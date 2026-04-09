@@ -58,7 +58,8 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         }
         
         .album-container {
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh;
         }
         
         .photo-section {
@@ -99,7 +100,7 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
             display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666;
         }
         
-        html { scroll-snap-type: y mandatory; }
+        html { scroll-snap-type: none; }
         .ad-wrap { width: min(100%, 980px); margin: 0 auto; padding: 6px 20px; }
         .ad-slot { min-height: 50px; margin: 10px 0; text-align: center; overflow: hidden; }
         .ad-top-fixed {
@@ -137,6 +138,10 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
             padding: 4px 10px;
             pointer-events: none;
         }
+        .nav-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -145,8 +150,10 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         <div class="page-badge" id="counterIndicator"><?= $current_page ?> / <?= $total_images ?></div>
     </div>
 
-    <!-- Pre-load current page target in a JS variable to anchor scroll immediately -->
-    <script>const START_PAGE = <?= $current_page ?>;</script>
+    <div class="ad-wrap ad-top-fixed">
+        <div class="desktop-only"><?= render_named_ad_slot('album_top_desktop') ?></div>
+        <div class="mobile-only"><?= render_named_ad_slot('album_top_mobile') ?></div>
+    </div>
 
     <div class="ad-wrap ad-top-fixed">
         <div class="desktop-only"><?= render_named_ad_slot('album_top_desktop') ?></div>
@@ -163,39 +170,37 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
                 </div>
             </section>
         <?php else: ?>
-            <?php foreach ($images as $idx => $img_name): 
-                $pgNum = $idx + 1;
-                $isCurrent = ($pgNum === $current_page);
-                // Normalize to a single URL-encoding pass to avoid `%` becoming `%25`.
-                $img_path = rawurlencode(rawurldecode($img_name));
-                $page_url = "page" . $pgNum . ".html";
+            <?php
+                // Render only the current page image to keep ad flow stable and page-specific.
+                $img_path = rawurlencode(rawurldecode($current_image));
             ?>
-            <section class="photo-section" id="photo-<?= $pgNum ?>" data-page="<?= $pgNum ?>" data-url="<?= $page_url ?>">
+            <section class="photo-section" id="photo-<?= $current_page ?>" data-page="<?= $current_page ?>" data-url="page<?= $current_page ?>.html">
                 <img
                     src="<?= htmlspecialchars($img_path) ?>"
                     class="photo-img"
-                    loading="<?= $isCurrent ? 'eager' : 'lazy' ?>"
+                    loading="eager"
                     decoding="async"
-                    fetchpriority="<?= $isCurrent ? 'high' : 'low' ?>"
-                    alt="<?= htmlspecialchars($album_name) ?> - Photo <?= $pgNum ?>">
+                    fetchpriority="high"
+                    alt="<?= htmlspecialchars($album_name) ?> - Photo <?= $current_page ?>">
                 <div class="photo-info">
-                    <?= htmlspecialchars($img_name) ?>
+                    <?= htmlspecialchars($current_image) ?>
                 </div>
             </section>
-            <?php if (!empty($ads_config['placements']['album_mid_enabled']) && $pgNum === 2): ?>
-            <div class="ad-wrap">
-                <div class="desktop-only"><?= render_named_ad_slot('album_mid_desktop') ?></div>
-                <div class="mobile-only"><?= render_named_ad_slot('album_mid_mobile') ?></div>
-            </div>
-            <?php endif; ?>
-            <?php endforeach; ?>
         <?php endif; ?>
     </div>
 
     <div class="nav-bar">
-        <a id="btnPrev" class="nav-btn"><i class="bi bi-arrow-left-circle-fill"></i>Prev</a>
+        <?php if (!empty($prev_page)): ?>
+            <a id="btnPrev" class="nav-btn" href="<?= htmlspecialchars($prev_page) ?>"><i class="bi bi-arrow-left-circle-fill"></i>Prev</a>
+        <?php else: ?>
+            <span id="btnPrev" class="nav-btn disabled"><i class="bi bi-arrow-left-circle-fill"></i>Prev</span>
+        <?php endif; ?>
         <a href="../index.html" class="nav-btn"><i class="bi bi-grid-fill"></i>Albums</a>
-        <a id="btnNext" class="nav-btn"><i class="bi bi-arrow-right-circle-fill"></i>Next</a>
+        <?php if (!empty($next_page)): ?>
+            <a id="btnNext" class="nav-btn" href="<?= htmlspecialchars($next_page) ?>"><i class="bi bi-arrow-right-circle-fill"></i>Next</a>
+        <?php else: ?>
+            <span id="btnNext" class="nav-btn disabled"><i class="bi bi-arrow-right-circle-fill"></i>Next</span>
+        <?php endif; ?>
     </div>
 
     <div class="ad-wrap ad-bottom-fixed">
@@ -209,66 +214,16 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
 
     <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const sections = document.querySelectorAll('.photo-section');
-        const counter = document.getElementById('counterIndicator');
-        const total = <?= $total_images ?>;
-        const btnPrev = document.getElementById('btnPrev');
-        const btnNext = document.getElementById('btnNext');
-        
-        let isProgrammaticScroll = true;
-
-        // Auto-scroll to current page on load
-        const targetSection = document.getElementById('photo-' + START_PAGE);
-        if (targetSection) {
-            targetSection.scrollIntoView({ behavior: 'auto' });
-            setTimeout(() => isProgrammaticScroll = false, 500); 
-        } else {
-            isProgrammaticScroll = false;
-        }
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const pageNum = parseInt(entry.target.getAttribute('data-page'));
-                    const pageUrl = entry.target.getAttribute('data-url');
-                    
-                    // Update URL without reloading if user is scrolling
-                    if (!isProgrammaticScroll) {
-                        window.history.replaceState(null, '', pageUrl);
-                        // Update title dynamically could be implemented here
-                    }
-                    
-                    counter.innerText = pageNum + ' / ' + total;
-                }
-            });
-        }, { threshold: 0.6 });
-
-        sections.forEach(sec => observer.observe(sec));
-
-        // Keyboard & Button Navigation
-        const moveTo = (offset) => {
-            const currentObj = Array.from(sections).find(s => {
-                const rect = s.getBoundingClientRect();
-                return rect.top >= -50 && rect.top < window.innerHeight / 2;
-            });
-            if (!currentObj) return;
-            
-            const currIdx = parseInt(currentObj.getAttribute('data-page'));
-            const targetIdx = currIdx + offset;
-            const targetEl = document.getElementById('photo-' + targetIdx);
-            if (targetEl) {
-                targetEl.scrollIntoView({ behavior: 'smooth' });
-            }
-        };
-
-        btnNext.addEventListener('click', () => moveTo(1));
-        btnPrev.addEventListener('click', () => moveTo(-1));
+        const prevUrl = <?= json_encode($prev_page) ?>;
+        const nextUrl = <?= json_encode($next_page) ?>;
 
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
-                e.preventDefault(); moveTo(1);
-            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                e.preventDefault(); moveTo(-1);
+            if ((e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') && nextUrl) {
+                e.preventDefault();
+                window.location.href = nextUrl;
+            } else if ((e.key === 'ArrowLeft' || e.key === 'ArrowUp') && prevUrl) {
+                e.preventDefault();
+                window.location.href = prevUrl;
             }
         });
     });
