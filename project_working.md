@@ -24,3 +24,4 @@ This document tracks all the changes, updates, and current working status of the
 - Added runtime ad rendering support to album generator templates (`template.php`, `template_grid.php`) with configurable AdSense slots from `album/ads.php` and per-page desktop/mobile placements.
 - Added explicit ad-slot HTML comments and generator signature comments in album templates to make ad rendering/debugging visible in page source even when ads are disabled or slot IDs are missing.
 - Added visible generator version badge + HTML comment signature in generated album/grid pages so deployment freshness can be verified directly in browser and view-source.
+- Updated `album/ads.php` with live AdSense client `ca-pub-9611661876400656` and mapped all desktop/mobile slot IDs (D1-D5, M1-M4) into grid/album placement keys.
