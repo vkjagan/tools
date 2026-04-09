@@ -17,13 +17,14 @@ $next_page = ($current_page < $total_images) ? "page" . ($current_page + 1) . ".
 
 // SEO Titles
 $seo_title = htmlspecialchars("{$album_name} - Photo {$current_page} of {$total_images} | {$category_name}");
-$seo_desc  = htmlspecialchars("View high quality photo {$current_page} from {$album_name} in {$category_name}.");
+$seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$album_name} in {$category_name}.");
 
 // Normalize image path
 $img_path = !empty($current_image) ? rawurlencode(rawurldecode($current_image)) : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <!-- generated-by: <?= htmlspecialchars($generator_version ?? 'unknown-generator-version') ?> -->
     <meta charset="UTF-8">
@@ -33,11 +34,13 @@ $img_path = !empty($current_image) ? rawurlencode(rawurldecode($current_image)) 
     <meta property="og:title" content="<?= $seo_title ?>">
     <meta property="og:description" content="<?= $seo_desc ?>">
     <?php if (!empty($img_path)): ?>
-    <meta property="og:image" content="<?= htmlspecialchars($img_path) ?>">
+        <meta property="og:image" content="<?= htmlspecialchars($img_path) ?>">
     <?php endif; ?>
 
     <?php if (!empty($ads_config['enabled']) && !empty($ads_config['adsense_client'])): ?>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= htmlspecialchars($ads_config['adsense_client']) ?>" crossorigin="anonymous"></script>
+        <script async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= htmlspecialchars($ads_config['adsense_client']) ?>"
+            crossorigin="anonymous"></script>
     <?php endif; ?>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,21 +49,28 @@ $img_path = !empty($current_image) ? rawurlencode(rawurldecode($current_image)) 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg:          #0a0a0a;
-            --surface:     #111111;
-            --border:      rgba(255,255,255,0.08);
-            --text:        #f0f0f0;
-            --text-muted:  #888;
-            --accent:      #6c63ff;
-            --accent2:     #a78bfa;
-            --nav-h:       60px;
-            --header-h:    56px;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        html, body {
+        :root {
+            --bg: #0a0a0a;
+            --surface: #111111;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f0f0f0;
+            --text-muted: #888;
+            --accent: #6c63ff;
+            --accent2: #a78bfa;
+            --nav-h: 60px;
+            --header-h: 56px;
+        }
+
+        html,
+        body {
             background: var(--bg);
             color: var(--text);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -70,31 +80,55 @@ $img_path = !empty($current_image) ? rawurlencode(rawurldecode($current_image)) 
 
         /* ── TOP HEADER ── */
         .header-bar {
-            position: fixed; top: 0; left: 0; right: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             height: var(--header-h);
-            background: rgba(10,10,10,0.92);
+            background: rgba(10, 10, 10, 0.92);
             backdrop-filter: blur(16px) saturate(180%);
             -webkit-backdrop-filter: blur(16px) saturate(180%);
             border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
         }
+
         .header-brand {
-            display: flex; align-items: center; gap: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             text-decoration: none;
-            font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
             transition: color 0.2s;
-            max-width: 180px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+            max-width: 180px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
-        .header-brand:hover { color: var(--text); }
-        .header-brand i { font-size: 1rem; color: var(--accent2); flex-shrink: 0; }
+
+        .header-brand:hover {
+            color: var(--text);
+        }
+
+        .header-brand i {
+            font-size: 1rem;
+            color: var(--accent2);
+            flex-shrink: 0;
+        }
 
         .page-badge {
-            background: rgba(108,99,255,0.2);
-            border: 1px solid rgba(108,99,255,0.35);
+            background: rgba(108, 99, 255, 0.2);
+            border: 1px solid rgba(108, 99, 255, 0.35);
             color: var(--accent2);
-            padding: 5px 14px; border-radius: 30px;
-            font-size: 0.8rem; font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
             letter-spacing: 0.02em;
         }
 
@@ -109,123 +143,245 @@ $img_path = !empty($current_image) ? rawurlencode(rawurldecode($current_image)) 
 
         /* ── TOP AD STRIP ── */
         .ad-strip-top {
-            width: 100%; background: rgba(0,0,0,0.4);
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
             border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            min-height: 60px; padding: 6px 12px; flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+            padding: 6px 12px;
+            flex-shrink: 0;
         }
 
         /* ── IMAGE AREA ── */
         .image-stage {
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; padding: 12px 12px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 12px 12px;
         }
 
         .photo-img {
-            max-width: 100%; max-height: 100%;
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
             border-radius: 10px;
-            box-shadow: 0 8px 48px rgba(0,0,0,0.7);
+            box-shadow: 0 8px 48px rgba(0, 0, 0, 0.7);
             display: block;
         }
 
         .photo-caption {
-            position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.55);
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(8px);
-            padding: 5px 14px; border-radius: 30px;
-            font-size: 0.72rem; color: var(--text-muted);
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
             border: 1px solid var(--border);
-            white-space: nowrap; max-width: 90%; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
             pointer-events: none;
         }
 
         /* ── BELOW IMAGE AD ── */
         .ad-strip-mid {
-            width: 100%; background: rgba(0,0,0,0.3);
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
             border-top: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            min-height: 60px; padding: 6px 12px; flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+            padding: 6px 12px;
+            flex-shrink: 0;
         }
 
         /* ── BOTTOM NAV BAR ── */
         .nav-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             height: var(--nav-h);
-            background: rgba(10,10,10,0.96);
+            background: rgba(10, 10, 10, 0.96);
             backdrop-filter: blur(16px) saturate(180%);
             -webkit-backdrop-filter: blur(16px) saturate(180%);
             border-top: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            gap: 0; z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            z-index: 1000;
         }
 
         .nav-btn {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 2px; padding: 0 28px; height: 100%;
-            text-decoration: none; color: var(--text-muted);
-            font-size: 0.62rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 0 28px;
+            height: 100%;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.62rem;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
             transition: color 0.18s, background 0.18s;
-            border: none; background: none; cursor: pointer;
+            border: none;
+            background: none;
+            cursor: pointer;
             position: relative;
         }
-        .nav-btn i { font-size: 1.3rem; color: var(--text); transition: color 0.18s; }
-        .nav-btn:hover { color: var(--accent2); }
-        .nav-btn:hover i { color: var(--accent2); }
-        .nav-btn.active-pg { color: var(--accent2); }
-        .nav-btn.active-pg i { color: var(--accent2); }
+
+        .nav-btn i {
+            font-size: 1.3rem;
+            color: var(--text);
+            transition: color 0.18s;
+        }
+
+        .nav-btn:hover {
+            color: var(--accent2);
+        }
+
+        .nav-btn:hover i {
+            color: var(--accent2);
+        }
+
+        .nav-btn.active-pg {
+            color: var(--accent2);
+        }
+
+        .nav-btn.active-pg i {
+            color: var(--accent2);
+        }
+
         .nav-btn.active-pg::after {
-            content: ''; position: absolute; top: 0; left: 12px; right: 12px; height: 2px;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 12px;
+            right: 12px;
+            height: 2px;
             background: linear-gradient(90deg, var(--accent), var(--accent2));
             border-radius: 0 0 3px 3px;
         }
-        .nav-btn.disabled { opacity: 0.3; pointer-events: none; cursor: default; }
-        .nav-divider { width: 1px; height: 30px; background: var(--border); flex-shrink: 0; }
+
+        .nav-btn.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            cursor: default;
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 30px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
 
         /* ── SIDEBAR AD (Desktop only) ── */
         .sidebar-ad {
             display: none;
         }
+
         @media (min-width: 1200px) {
             .sidebar-ad {
-                display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-                position: fixed; right: 12px; top: calc(var(--header-h) + 80px);
-                width: 160px; gap: 12px; z-index: 900;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                position: fixed;
+                right: 12px;
+                top: calc(var(--header-h) + 80px);
+                width: 160px;
+                gap: 12px;
+                z-index: 900;
             }
         }
 
         /* ── FALLBACK ── */
         .fallback-box {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 16px; color: #555; padding: 40px;
-            border: 2px dashed #333; border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: #555;
+            padding: 40px;
+            border: 2px dashed #333;
+            border-radius: 16px;
             text-align: center;
         }
-        .fallback-box i { font-size: 3rem; }
+
+        .fallback-box i {
+            font-size: 3rem;
+        }
 
         /* ── AD SLOTS ── */
-        .ad-slot { text-align: center; overflow: hidden; }
-        .desktop-only { display: none; }
-        .mobile-only  { display: block; }
+        .ad-slot {
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .desktop-only {
+            display: none;
+        }
+
+        .mobile-only {
+            display: block;
+        }
+
         @media (min-width: 992px) {
-            .desktop-only { display: block; }
-            .mobile-only  { display: none; }
+            .desktop-only {
+                display: block;
+            }
+
+            .mobile-only {
+                display: none;
+            }
         }
 
         /* ── Generator Version badge ── */
         .generator-version {
-            position: fixed; right: 10px; bottom: 68px;
-            z-index: 1100; font-size: 10px; color: #555;
-            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 999px; padding: 3px 9px; pointer-events: none;
+            position: fixed;
+            right: 10px;
+            bottom: 68px;
+            z-index: 1100;
+            font-size: 10px;
+            color: #555;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            padding: 3px 9px;
+            pointer-events: none;
         }
 
         /* ── Swipe touch hint ── */
         @media (hover: none) and (pointer: coarse) {
-            .photo-img { touch-action: pan-y; }
+            .photo-img {
+                touch-action: pan-y;
+            }
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
         }
     </style>
 </head>
+
 <body>
 
     <!-- ══ HEADER ══════════════════════════════════════════════════ -->
@@ -257,25 +413,19 @@ $img_path = !empty($current_image) ? rawurlencode(rawurldecode($current_image)) 
                     <p style="color:#666;font-size:0.9rem;">This album is currently empty.</p>
                 </div>
             <?php else: ?>
-                <img
-                    src="<?= htmlspecialchars($img_path) ?>"
-                    class="photo-img"
-                    id="mainPhoto"
-                    loading="eager"
-                    decoding="async"
-                    fetchpriority="high"
-                    alt="<?= htmlspecialchars($album_name) ?> - Photo <?= $current_page ?>"
-                >
+                <img src="<?= htmlspecialchars($img_path) ?>" class="photo-img" id="mainPhoto" loading="eager"
+                    decoding="async" fetchpriority="high"
+                    alt="<?= htmlspecialchars($album_name) ?> - Photo <?= $current_page ?>">
                 <div class="photo-caption"><?= htmlspecialchars($current_image) ?></div>
             <?php endif; ?>
         </div>
 
         <!-- BELOW IMAGE AD (High-CTR zone) -->
         <?php if (!empty($ads_config['enabled'])): ?>
-        <div class="ad-strip-mid">
-            <div class="desktop-only"><?= render_named_ad_slot('album_mid_desktop') ?></div>
-            <div class="mobile-only"><?= render_named_ad_slot('album_mid_mobile') ?></div>
-        </div>
+            <div class="ad-strip-mid">
+                <div class="desktop-only"><?= render_named_ad_slot('album_mid_desktop') ?></div>
+                <div class="mobile-only"><?= render_named_ad_slot('album_mid_mobile') ?></div>
+            </div>
         <?php endif; ?>
 
     </div>
@@ -327,48 +477,49 @@ $img_path = !empty($current_image) ? rawurlencode(rawurldecode($current_image)) 
     </div>
 
     <script>
-    (function () {
-        'use strict';
+        (function () {
+            'use strict';
 
-        var prevUrl = <?= json_encode($prev_page) ?>;
-        var nextUrl = <?= json_encode($next_page) ?>;
+            var prevUrl = <?= json_encode($prev_page) ?>;
+            var nextUrl = <?= json_encode($next_page) ?>;
 
-        /* ── Keyboard navigation ── */
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-                if (nextUrl) { e.preventDefault(); location.href = nextUrl; }
-            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                if (prevUrl) { e.preventDefault(); location.href = prevUrl; }
-            }
-        });
-
-        /* ── Touch / swipe navigation ── */
-        var touchStartX = 0, touchStartY = 0;
-        var stage = document.getElementById('imageStage');
-        if (stage) {
-            stage.addEventListener('touchstart', function (e) {
-                touchStartX = e.changedTouches[0].screenX;
-                touchStartY = e.changedTouches[0].screenY;
-            }, { passive: true });
-            stage.addEventListener('touchend', function (e) {
-                var dx = e.changedTouches[0].screenX - touchStartX;
-                var dy = e.changedTouches[0].screenY - touchStartY;
-                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-                    if (dx < 0 && nextUrl) location.href = nextUrl;
-                    else if (dx > 0 && prevUrl) location.href = prevUrl;
+            /* ── Keyboard navigation ── */
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                    if (nextUrl) { e.preventDefault(); location.href = nextUrl; }
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    if (prevUrl) { e.preventDefault(); location.href = prevUrl; }
                 }
-            }, { passive: true });
-        }
-
-        /* ── Image error fallback ── */
-        var img = document.getElementById('mainPhoto');
-        if (img) {
-            img.addEventListener('error', function () {
-                this.style.opacity = '0.2';
-                this.alt = 'Image could not be loaded';
             });
-        }
-    })();
+
+            /* ── Touch / swipe navigation ── */
+            var touchStartX = 0, touchStartY = 0;
+            var stage = document.getElementById('imageStage');
+            if (stage) {
+                stage.addEventListener('touchstart', function (e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+                stage.addEventListener('touchend', function (e) {
+                    var dx = e.changedTouches[0].screenX - touchStartX;
+                    var dy = e.changedTouches[0].screenY - touchStartY;
+                    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+                        if (dx < 0 && nextUrl) location.href = nextUrl;
+                        else if (dx > 0 && prevUrl) location.href = prevUrl;
+                    }
+                }, { passive: true });
+            }
+
+            /* ── Image error fallback ── */
+            var img = document.getElementById('mainPhoto');
+            if (img) {
+                img.addEventListener('error', function () {
+                    this.style.opacity = '0.2';
+                    this.alt = 'Image could not be loaded';
+                });
+            }
+        })();
     </script>
 </body>
+
 </html>

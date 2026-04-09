@@ -26,6 +26,7 @@ This document tracks all the changes, updates, and current working status of the
 - Added visible generator version badge + HTML comment signature in generated album/grid pages so deployment freshness can be verified directly in browser and view-source.
 - Updated `album/ads.php` with live AdSense client `ca-pub-9611661876400656` and mapped all desktop/mobile slot IDs (D1-D5, M1-M4) into grid/album placement keys.
 - Adjusted album ad layout defaults to top+bottom only (`album_mid_enabled=false`), switched mobile footer slot to a rectangular unit, and added slot-level render options (style/format/full-width) to prevent thin broken horizontal bars.
+<<<<<<< HEAD
 <<<<<<< ours
 <<<<<<< ours
 <<<<<<< ours
@@ -57,3 +58,7 @@ This document tracks all the changes, updates, and current working status of the
 - Tweaked album image-page ad UX: moved top/footer ads to fixed overlay containers (`ad-top-fixed` / `ad-bottom-fixed`) and increased photo section paddings so ads no longer appear between image sections while scrolling.
 - Refactored `album/template.php` to render only the current image per `pageN.html` (instead of all images in one long scroll), with direct prev/next links and keyboard navigation, so ads stay stable at top/bottom and no in-between ad interruption occurs.
 >>>>>>> theirs
+=======
+- Tweaked album image-page ad UX: moved top/footer ads to fixed overlay containers (`ad-top-fixed` / `ad-bottom-fixed`) and increased photo section paddings so ads no longer appear between image sections while scrolling.
+- Refactored `album/template.php` to render only the current image per `pageN.html` (instead of all images in one long scroll), with direct prev/next links and keyboard navigation, so ads stay stable at top/bottom and no in-between ad interruption occurs.
+>>>>>>> 9ce145e8e9ea65b9481520a018ec44e6de193774
