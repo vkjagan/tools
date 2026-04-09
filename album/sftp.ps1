@@ -7,13 +7,8 @@ $REMOTE_PATH = "/var/www/dppic.com/gallery/home/"
 
 # Folders to sync
 $SyncPaths = @(
-	"public", 
-    "admin", 
-    "core", 
-    "public", 
-	"test", 
-	"standalone-generator",
-    "templates"
+	"source", 
+    "output"
 )
 
 # Smart Sync Logic (Force full sync by deleting .sync_marker or setting $ForceFullSync = $true)

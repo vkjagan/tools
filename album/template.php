@@ -155,6 +155,11 @@ $seo_desc = htmlspecialchars("View high quality photo {$current_page} from {$alb
         <div class="mobile-only"><?= render_named_ad_slot('album_top_mobile') ?></div>
     </div>
 
+    <div class="ad-wrap ad-top-fixed">
+        <div class="desktop-only"><?= render_named_ad_slot('album_top_desktop') ?></div>
+        <div class="mobile-only"><?= render_named_ad_slot('album_top_mobile') ?></div>
+    </div>
+
     <div class="album-container" id="albumContainer">
         <?php if ($total_images === 0): ?>
             <section class="photo-section">
